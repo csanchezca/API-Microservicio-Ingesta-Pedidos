@@ -1,3 +1,5 @@
+#(DIP: interface del repo)
+
 from typing import Protocol
 from app.domain.entities import Order
 
