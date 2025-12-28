@@ -4,6 +4,7 @@ from app.services.orders_service import OrdersService
 from app.domain.entities import Customer, Item
 from app.domain.errors import ValidationError
 from app.di import get_orders_service
+from app.domain.errors import ValidationError, DuplicateExternalIdError
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -31,6 +32,9 @@ def create_order(payload: OrderIn, service: OrdersService = Depends(get_orders_s
         }
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    
+    except DuplicateExternalIdError as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
 @router.get("/report", response_model=list[ReportRowOut])
 def report(service: OrdersService = Depends(get_orders_service)):

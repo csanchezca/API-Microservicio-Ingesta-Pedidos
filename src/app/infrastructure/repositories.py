@@ -1,8 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, case
+from sqlalchemy.exc import IntegrityError  # 👈 nuevo
+
 from app.domain.entities import Order
 from app.domain.ports import OrdersRepository
+from app.domain.errors import DuplicateExternalIdError  # 👈 nuevo
 from app.infrastructure.models import OrderRow
+
 
 class SQLiteOrdersRepository(OrdersRepository):
     def __init__(self, db: Session):
@@ -18,10 +22,17 @@ class SQLiteOrdersRepository(OrdersRepository):
             arrival_date=order.arrival_date,
         )
         self.db.add(row)
-        self.db.commit()
+
+        try:
+            self.db.commit()
+        except IntegrityError as e:
+            self.db.rollback()
+            # esto cubre UNIQUE de external_id (y cualquier UNIQUE que tengas)
+            raise DuplicateExternalIdError(
+                f"Order with external_id '{order.external_id}' already exists"
+            ) from e
 
     def report(self) -> list[dict]:
-        # resumen por cliente
         stmt = (
             select(
                 OrderRow.customer_email.label("customer_email"),
