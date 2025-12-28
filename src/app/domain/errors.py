@@ -6,3 +6,6 @@ class ValidationError(DomainError):
 
 class InfrastructureError(Exception):
     pass
+
+class DuplicateExternalIdError(Exception):
+    pass
