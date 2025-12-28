@@ -35,3 +35,4 @@ def create_order(payload: OrderIn, service: OrdersService = Depends(get_orders_s
 @router.get("/report", response_model=list[ReportRowOut])
 def report(service: OrdersService = Depends(get_orders_service)):
     return service.get_report()
+

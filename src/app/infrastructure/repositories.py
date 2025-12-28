@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, case, max
+from sqlalchemy import select, func, case
 from app.domain.entities import Order
 from app.domain.ports import OrdersRepository
 from app.infrastructure.models import OrderRow
@@ -28,7 +28,7 @@ class SQLiteOrdersRepository(OrdersRepository):
                 func.count(OrderRow.id).label("total_orders"),
                 func.sum(OrderRow.total_amount).label("total_amount_spent"),
                 case((func.sum(OrderRow.total_amount) > 300, True), else_=False).label("is_vip"),
-                max(OrderRow.arrival_date).label("arrival_date"),
+                func.max(OrderRow.arrival_date).label("arrival_date"),
             )
             .group_by(OrderRow.customer_email)
         )
