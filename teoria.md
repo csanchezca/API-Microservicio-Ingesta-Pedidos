@@ -244,10 +244,3 @@ El router decide cómo exponerlo:
 except ValidationError as e:
     raise HTTPException(status_code=422, detail=str(e))
 
-Conclusión
-
-Se mantiene Clean Architecture
-
-Se reduce acoplamiento
-
-Se mejora extensibilidad y testabilidad

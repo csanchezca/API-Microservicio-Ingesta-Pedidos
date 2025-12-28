@@ -1,34 +1,35 @@
 📦 Microservicio de Ingesta de Pedidos
 
-Microservicio desarrollado en FastAPI para la ingesta, validación y persistencia de pedidos de clientes externos.
-La solución está diseñada bajo principios de Arquitectura Limpia y SOLID, garantizando desacoplamiento, extensibilidad y facilidad de mantenimiento.
+Microservicio desarrollado en FastAPI para la ingesta, validación y persistencia de pedidos provenientes de clientes externos.
+
+La solución fue diseñada siguiendo principios de Arquitectura Limpia (Clean Architecture) y SOLID, con especial énfasis en la Inversión de Dependencias, garantizando desacoplamiento, extensibilidad y facilidad de mantenimiento.
 
 🧠 Objetivo
 
-Construir una API REST que:
+Construir una API REST que permita:
 
-Reciba pedidos externos
+Recibir pedidos de sistemas externos
 
-Valide reglas de negocio
+Validar reglas de negocio
 
-Persista la información en una base de datos relacional
+Persistir la información en una base de datos relacional
 
-Genere reportes agregados por cliente
+Generar reportes agregados por cliente
 
-Sea agnóstica al ERP de destino, permitiendo cambios futuros sin afectar la lógica de negocio
+Mantenerse agnóstica al ERP de destino, permitiendo reemplazar integraciones futuras sin modificar la lógica de negocio
 
 🏗️ Arquitectura
 
-La solución sigue una Clean Architecture con inversión de dependencias:
+La solución sigue una Clean Architecture, separando claramente responsabilidades y aplicando inversión de dependencias.
 
 src/
 ├── main.py                     # Entry point de la aplicación
 └── app/
-    ├── routers/                # Capa de infraestructura (HTTP)
-    ├── schemas/                # DTOs (Pydantic)
-    ├── services/               # Lógica de negocio
+    ├── routers/                # Infraestructura HTTP (FastAPI)
+    ├── schemas/                # DTOs / Contratos de entrada y salida (Pydantic)
+    ├── services/               # Casos de uso / Lógica de negocio
     ├── domain/                 # Entidades y puertos (interfaces)
-    └── infrastructure/         # Implementaciones concretas (SQLite, ORM)
+    └── infrastructure/         # Implementaciones concretas (SQLite, SQLAlchemy)
 
 Principios aplicados
 
@@ -39,6 +40,8 @@ Separación de responsabilidades
 Dominio independiente del framework
 
 Infraestructura intercambiable
+
+Código orientado a casos de uso
 
 🚀 Tecnologías utilizadas
 
@@ -76,12 +79,14 @@ pip install -r requirements.txt
 3️⃣ Ejecutar la aplicación
 python -m uvicorn main:app --reload --app-dir src
 
-📑 Documentación API
+📑 Documentación de la API
 
-Swagger UI:
+Una vez levantado el servicio, la documentación interactiva está disponible en:
+
+Swagger UI
 👉 http://127.0.0.1:8000/docs
 
-OpenAPI:
+OpenAPI JSON
 👉 http://127.0.0.1:8000/openapi.json
 
 🔌 Endpoints
@@ -89,49 +94,55 @@ POST /orders
 
 Ingesta y validación de pedidos externos.
 
-Reglas de negocio:
+Reglas de negocio aplicadas:
 
 quantity > 0
 
 price_unit >= 0
 
-Email válido
+Email con formato válido
 
-is_vip = True si total > 300
+is_vip = True si el total del pedido es mayor a 300
 
-arrival_date:
+Cálculo de arrival_date:
 
-VIP → +3 días
+Cliente VIP → fecha + 3 días
 
-No VIP → +5 días
+Cliente no VIP → fecha + 5 días
 
 GET /orders/report
 
-Reporte agregado de pedidos por cliente:
+Reporte agregado de pedidos por cliente, que retorna:
+
+Correo del cliente
 
 Total de órdenes
 
-Monto acumulado
+Monto total acumulado
 
 Estado VIP
 
-Fecha de llegada
+Fecha de llegada más reciente
 
 🧪 Manejo de errores
 
-Errores de negocio → 400 Bad Request
+La API diferencia claramente los tipos de error:
+
+Errores de negocio / validación → 400 Bad Request
 
 Recursos no encontrados → 404 Not Found
 
-Errores de infraestructura → 500 Internal Server Error
+Errores de infraestructura o persistencia → 500 Internal Server Error
 
 🧩 Decisiones de diseño
 
-El dominio no depende de FastAPI ni SQLAlchemy
+El dominio no depende de FastAPI ni de SQLAlchemy
 
-La persistencia se abstrae mediante interfaces
+La persistencia se abstrae mediante interfaces (puertos)
 
-El servicio puede conectarse a otro ERP o base de datos sin modificar la lógica de negocio
+Las implementaciones concretas se inyectan mediante Dependency Injection
+
+El microservicio puede integrarse con otro ERP o motor de persistencia sin modificar la lógica de negocio
 
 📂 Estructura del repositorio
 .
@@ -145,14 +156,12 @@ El servicio puede conectarse a otro ERP o base de datos sin modificar la lógica
 ├── teoria.md
 └── Dockerfile (opcional)
 
-📌 Consideraciones finales
+## 🐳 Ejecución con Docker (Opcional)
+“El Dockerfile está preparado para ejecutarse desde la raíz del proyecto como contexto de build. En mi entorno local no fue posible instalar Docker Desktop por restricciones del sistema, pero el contenedor fue diseñado siguiendo buenas prácticas y puede ejecutarse sin cambios en cualquier entorno Docker-compatible.”
 
-Este proyecto fue desarrollado como prueba técnica, priorizando:
+El proyecto incluye un `Dockerfile` para ejecutar la aplicación de forma contenida.
 
-Calidad del diseño
+### Construir imagen
 
-Claridad del código
-
-Buenas prácticas de arquitectura
-
-Escalabilidad y mantenibilidad
+```bash
+docker build -t orders-ingestion-api .
